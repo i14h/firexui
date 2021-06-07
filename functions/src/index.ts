@@ -1,9 +1,20 @@
 import * as functions from "firebase-functions";
+const express = require("express");
 
-// // Start writing Firebase Functions
-// // https://firebase.google.com/docs/functions/typescript
-//
-export const helloWorld = functions.https.onRequest((request, response) => {
-  functions.logger.info("Hello logs!", {structuredData: true});
-  response.send("Hello from Firebase!");
+const app = express();
+
+app.get("/home", (request: any, response: any) => {
+  functions.logger.info("Hello from /home!", { structuredData: true });
+  response.send("Hello from /home!");
 });
+
+app.get("/admin", (request: any, response: any) => {
+  functions.logger.info("Hello from /admin!", { structuredData: true });
+  response.send("Hello from /admin!");
+});
+
+app.get("/", (request: any, response: any) => {
+  response.status(200).send();
+});
+
+exports.app = functions.https.onRequest(app);
