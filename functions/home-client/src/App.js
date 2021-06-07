@@ -6,7 +6,7 @@ function App() {
     <div className="App">
       <header className="App-header">
         <img src={logo} className="App-logo" alt="logo" />
-        <p>This is the Admin WebApp.</p>
+        <p>This is the Home WebApp.</p>
         <p>
           Edit <code>src/App.js</code> and save to reload.
         </p>
