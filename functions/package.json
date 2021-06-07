@@ -2,7 +2,7 @@
   "name": "functions",
   "scripts": {
     "build": "tsc",
-    "serve": "cd admin-client && npm run build && cd .. & npm run build && firebase emulators:start --only functions",
+    "serve": "cd admin-client && npm run build && cd ../home-client && npm run build && cd .. & npm run build && firebase emulators:start --only functions",
     "shell": "npm run build && firebase functions:shell",
     "start": "npm run shell",
     "deploy": "firebase deploy --only functions",
