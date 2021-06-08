@@ -1,0 +1,85 @@
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: example-auth-admin-ui
+version: 0.1.0
+specVersion: v1beta
+
+displayName: Authenticated Admin UI Example
+description:
+  Serves an embedded React UI with an authenticated endpoint through a Firebase Extension
+  to manage protected data in Firestore.
+
+license: Apache-2.0
+
+sourceUrl: https://github.com/TODO
+releaseNotesUrl: https://github.com/TODO/CHANGELOG.md
+
+author:
+  authorName: TODO
+  url: https://TODO
+
+contributors:
+- authorName: Rafi Khan
+  email: khanrafi@google.com
+  url: https://github.com/khanrafi
+- authorName: Ehsan Nasiri
+  email: ehsannasiri@google.com
+  url: https://github.com/ehsannas
+- authorName: Iman Rahmati
+  email: imanrahmati@google.com
+  url: https://github.com/i14h
+
+billingRequired: true
+
+resources:
+- name: app
+  type: firebaseextensions.v1beta.function
+  description:
+    Serves a UI
+  properties:
+    location: ${param:LOCATION}
+    runtime: nodejs10
+    eventTrigger:
+      eventType: providers/firebase.auth/eventTypes/user.create
+      resource: projects/${param:PROJECT_ID}
+
+params:
+- param: LOCATION
+  label: Cloud Functions location
+  description: >-
+    Where do you want to deploy the functions created for this extension?  You
+    usually want a location close to your database. For help selecting a
+    location, refer to the [location selection
+    guide](https://firebase.google.com/docs/functions/locations).  Note that
+    this extension locates your BigQuery dataset in `us-central1`.
+  type: select
+  options:
+  - label: Iowa (us-central1)
+    value: us-central1
+  - label: South Carolina (us-east1)
+    value: us-east1
+  - label: Northern Virginia (us-east4)
+    value: us-east4
+  - label: Belgium (europe-west1)
+    value: europe-west1
+  - label: London (europe-west2)
+    value: europe-west2
+  - label: Frankfurt (europe-west3)
+    value: europe-west3
+  - label: Hong Kong (asia-east2)
+    value: asia-east2
+  - label: Tokyo (asia-northeast1)
+    value: asia-northeast1
+  default: us-central1
+  required: true
+  immutable: true
