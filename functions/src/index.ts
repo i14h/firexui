@@ -20,10 +20,9 @@ app.use(express.static(path.join(__dirname, "..", "home-client", "build")));
 /// This is currently hard-coded, but should be replaced by looking up
 /// environment variables that the Cloud Function has access to.
 const getFirebaseProjectInfo = () => {
-  // TODO: Get this information from env vars.
   return {
     apiKey: "AIzaSyARZCj-D0vytZnZhhOpvDFLY572kVGWSxo",
-    projectId: "hw2021-firexui",
+    projectId: process.env.GCLOUD_PROJECT,
   };
 };
 
