@@ -12,9 +12,10 @@ const app = express();
 app.use(express.static(path.join(__dirname, "..", "admin-client", "build")));
 app.use(express.static(path.join(__dirname, "..", "home-client", "build")));
 
-const validateFirebaseIdToken = async (req: ex.Request, res: ex.Response, next: any) => {
+const validateFirebaseIdToken = async (req: ex.Request, res: ex.Response) => {
   functions.logger.log('Check if request is authorized with Firebase ID token');
 
+  // check existence of either headers or cookies
   if ((!req.headers.authorization || !req.headers.authorization.startsWith('Bearer ')) &&
       !(req.cookies && req.cookies.__session)) {
     functions.logger.error(
@@ -46,11 +47,10 @@ const validateFirebaseIdToken = async (req: ex.Request, res: ex.Response, next: 
     const decodedIdToken = await admin.auth().verifyIdToken(idToken);
     functions.logger.log('ID Token correctly decoded', decodedIdToken);
     req.user = decodedIdToken;
-    return;
+    res.status(200).send('Hey! You\'re authorized!');
   } catch (error) {
     functions.logger.error('Error while verifying Firebase ID token:', error);
     res.status(403).send('Unauthorized');
-    return;
   }
 };
 
