@@ -17,9 +17,8 @@ app.use(express.static(path.join(__dirname, "..", "home-client", "build")));
 /// This is currently hard-coded, but should be replaced by looking up
 /// environment variables that the Cloud Function has access to.
 const getFirebaseProjectInfo = () => {
-    // TODO: Get this information from env vars.
     return {
-        apiKey: "AIzaSyARZCj-D0vytZnZhhOpvDFLY572kVGWSxo",
+        apiKey: process.env.FIREBASE_API_KEY,
         projectId: process.env.GCLOUD_PROJECT,
     };
 };
@@ -29,7 +28,7 @@ const getFirebaseProjectInfo = () => {
 /// an environment variable.
 const isAdmin = (token) => {
     // TODO: Get the real list of admins using env vars.
-    let adminList = ["ehsannas@gmail.com"];
+    let adminList = [process.env.ADMIN_EMAIL];
     return token.email && adminList.includes(token.email);
 };
 const validateFirebaseIdToken = async (req, res) => {

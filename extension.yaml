@@ -83,3 +83,19 @@ params:
   default: us-central1
   required: true
   immutable: true
+- param: FIREBASE_API_KEY
+  label: Firebase API key
+  description: >-
+    API key  to initialize Auth
+  type: string
+  required: true
+- param: ADMIN_EMAIL
+  label: Default admin email
+  description: >-
+    The email address for the admin user
+  type: string
+  example: foobar@example.com
+  validationRegex: .{1,}@[^.]{1,}
+  validationErrorMessage: Must be a valid email address
+  required: true
+
