@@ -8,11 +8,14 @@ const express = require("express");
 const cookieParser = require("cookie-parser")();
 const cors = require("cors")({ origin: true });
 const fs = require("fs");
+const bodyParser = require("body-parser");
 
 admin.initializeApp();
 const app = express();
 app.use(express.static(path.join(__dirname, "..", "admin-client", "build")));
 app.use(express.static(path.join(__dirname, "..", "home-client", "build")));
+app.use(bodyParser.urlencoded({ extended: true }));
+//app.use(bodyParser.json());
 
 /// Returns the Api-Key and Project-ID for the Firebase Project that uses
 /// this extension.
@@ -21,8 +24,10 @@ app.use(express.static(path.join(__dirname, "..", "home-client", "build")));
 /// environment variables that the Cloud Function has access to.
 const getFirebaseProjectInfo = () => {
   return {
-    apiKey: process.env.FIREBASE_API_KEY,
-    projectId: process.env.GCLOUD_PROJECT,
+    apiKey: "AIzaSyARZCj-D0vytZnZhhOpvDFLY572kVGWSxo",
+    projectId: "hw2021-firexui",
+    // apiKey: process.env.FIREBASE_API_KEY,
+    // projectId: process.env.GCLOUD_PROJECT,
   };
 };
 
@@ -32,11 +37,14 @@ const getFirebaseProjectInfo = () => {
 /// an environment variable.
 const isAdmin = (token: auth.DecodedIdToken) => {
   // TODO: Get the real list of admins using env vars.
-  let adminList = [process.env.ADMIN_EMAIL];
+  //let adminList = [process.env.ADMIN_EMAIL];
+  let adminList = ["ehsannas@gmail.com"];
   return token.email && adminList.includes(token.email);
 };
 
-const validateFirebaseIdToken = async (req: ex.Request, res: ex.Response) => {
+/// Returns true if the given request has a valid FirebaseIdToken, and false otherwise.
+/// This is done by checking the Authorization header and the session.
+const validateFirebaseIdToken = async (req: ex.Request) => {
   functions.logger.log("Check if request is authorized with Firebase ID token");
   let idToken;
   if (
@@ -59,25 +67,62 @@ const validateFirebaseIdToken = async (req: ex.Request, res: ex.Response) => {
       "Authorization: Bearer <Firebase ID Token>",
       'or by passing a "__session" cookie.'
     );
-    res.status(403).send("Unauthorized");
-    return;
+    return false;
   }
 
   try {
     const decodedIdToken = await admin.auth().verifyIdToken(idToken);
     functions.logger.log("ID Token correctly decoded", decodedIdToken);
     functions.logger.log(`Logged in admin with uid: ${decodedIdToken.uid}`);
-    if (isAdmin(decodedIdToken)) {
-      res.status(200).send();
-    } else {
-      res.status(403).send("Unauthorized");
-    }
-    return;
+    return isAdmin(decodedIdToken);
   } catch (error) {
     functions.logger.error("Error while verifying Firebase ID token:", error);
+    return false;
+  }
+};
+
+const validateFirebaseIdTokenAndRespond = async (
+  req: ex.Request,
+  res: ex.Response
+) => {
+  if (validateFirebaseIdToken(req)) {
+    res.status(200).send();
+  } else {
+    res.status(403).send("Unauthorized");
+  }
+  return;
+};
+
+const writeConfigsToFirebaseStorage = async (
+  req: ex.Request,
+  res: ex.Response
+) => {
+  console.log("Got body:", req.body);
+
+  if (!validateFirebaseIdToken(req)) {
     res.status(403).send("Unauthorized");
     return;
   }
+
+  var bucket = admin.storage().bucket();
+
+  let config = {
+    width: 300,
+    height: 300,
+  };
+
+  // Upload a JSON file to Firebase Storage that contains information about how
+  // this extension should work.
+  let file = bucket.file("firexui/config.json");
+  file.save(JSON.stringify(config), function (err: any) {
+    if (!err) {
+      // File written successfully.
+      res.status(200).send("Successfully wrote configurations");
+    } else {
+      res.status(503).send("Upload failed. Please try again later.");
+    }
+  });
+  return;
 };
 
 app.use(cors);
@@ -105,7 +150,8 @@ app.get("/admin", (request: any, response: any) => {
   response.send(page);
 });
 
-app.get("/admin/work", validateFirebaseIdToken);
+app.get("/admin/work", validateFirebaseIdTokenAndRespond);
+app.post("/admin/write-config", writeConfigsToFirebaseStorage);
 
 app.get("/", (request: any, response: any) => {
   response.status(200).send();
