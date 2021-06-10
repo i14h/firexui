@@ -3,10 +3,7 @@
     "module": "commonjs",
     "noImplicitReturns": true,
     "outDir": "lib",
-    "sourceMap": true,
-    "strict": false,
-    "target": "es2017",
-    "lib": ["es6"]
+    "target": "es2018"
   },
   "compileOnSave": true,
   "exclude": ["node_modules"],
