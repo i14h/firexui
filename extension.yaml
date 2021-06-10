@@ -48,10 +48,7 @@ resources:
     Serves a UI
   properties:
     location: ${param:LOCATION}
-    runtime: nodejs10
-    eventTrigger:
-      eventType: providers/firebase.auth/eventTypes/user.create
-      resource: projects/${param:PROJECT_ID}
+    httpsTrigger: {}
 
 params:
 - param: LOCATION
