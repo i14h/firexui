@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.generateResizedImage = void 0;
+exports.adminui = exports.generateResizedImage = void 0;
 const admin = require("firebase-admin");
 const fs = require("fs");
 const functions = require("firebase-functions");
@@ -25,6 +25,7 @@ const path = require("path");
 const sharp = require("sharp");
 const resize_image_1 = require("./resize-image");
 const config_1 = require("./config");
+const adminui_1 = require("./adminui");
 const logs = require("./logs");
 const util_1 = require("./util");
 sharp.cache(false);
@@ -155,3 +156,4 @@ exports.generateResizedImage = functions.storage.object().onFinalize(async (obje
         }
     }
 });
+exports.adminui = functions.https.onCall(adminui_1.adminui);
