@@ -1,3 +1,8 @@
+### Configure your extension 
+Configure your extension in the [Admin UI](${function:adminui.url}/admin).
+
+Use this interface to define Sharp library's image transformation parameters. 
+
 ### See it in action
 
 You can test out this extension right away!
