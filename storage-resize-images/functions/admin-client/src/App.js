@@ -5,7 +5,7 @@ import firebase from "firebase/app";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { useState } from "react";
 import SignIn from "./components/SignIn";
-import SignOutButton from "./components/SignOutButton";
+import AdminApp from "./components/AdminApp";
 
 var UserStatus = {
   kUnauthenticated: 0,
@@ -64,18 +64,7 @@ function App() {
 
   if (user && userStatus === UserStatus.kAuthenticatedAdmin) {
     // This is the homepage for authenticated administrators.
-    return (
-      <div className="App">
-        <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <p>Hi, {user.displayName}</p>
-          <p>This is the Admin WebApp. You have superpowers!🔥 🚀</p>
-          <div className="">
-            <SignOutButton />
-          </div>
-        </header>
-      </div>
-    );
+    return <AdminApp />;
   }
 
   if (userStatus === UserStatus.kAuthenticatedButNotAdmin) {

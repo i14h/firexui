@@ -8,9 +8,13 @@ const express = require("express");
 const cookieParser = require("cookie-parser")();
 const cors = require("cors")({ origin: true });
 const fs = require("fs");
+const bodyParser = require("body-parser");
 const app = express();
 app.use(express.static(path.join(__dirname, "..", "admin-client", "build")));
 app.use(express.static(path.join(__dirname, "..", "home-client", "build")));
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(cors);
+app.use(cookieParser);
 /// Returns the Api-Key and Project-ID for the Firebase Project that uses
 /// this extension.
 ///
@@ -31,7 +35,15 @@ const isAdmin = (token) => {
     let adminList = [process.env.ADMIN_EMAIL];
     return token.email && adminList.includes(token.email);
 };
-const validateFirebaseIdToken = async (req, res) => {
+/// Returns the location in Firebase Storage where this extension will write the
+/// information provided by the admins using the admin-client.
+/// We can define a new parameter for the extension for this.
+const getConfigFilePath = () => {
+    return "firexui/config.json";
+};
+/// Returns true if the given request has a valid FirebaseIdToken, and false otherwise.
+/// This is done by checking the Authorization header and the session.
+const validateFirebaseIdToken = async (req) => {
     functions.logger.log("Check if request is authorized with Firebase ID token");
     let idToken;
     if (req.headers.authorization &&
@@ -49,32 +61,83 @@ const validateFirebaseIdToken = async (req, res) => {
     else {
         // No valid authorization header and no cookie.
         functions.logger.error("No Firebase ID token was passed as a Bearer token in the Authorization header.", "Make sure you authorize your request by providing the following HTTP header:", "Authorization: Bearer <Firebase ID Token>", 'or by passing a "__session" cookie.');
-        res.status(403).send("Unauthorized");
-        return;
+        return false;
     }
     try {
         const decodedIdToken = await admin.auth().verifyIdToken(idToken);
         functions.logger.log("ID Token correctly decoded", decodedIdToken);
         functions.logger.log(`Logged in admin with uid: ${decodedIdToken.uid}`);
-        if (isAdmin(decodedIdToken)) {
-            res.status(200).send();
-        }
-        else {
-            res.status(403).send("Unauthorized");
-        }
-        return;
+        return isAdmin(decodedIdToken);
     }
     catch (error) {
         functions.logger.error("Error while verifying Firebase ID token:", error);
+        return false;
+    }
+};
+/// Validates the FirebaseIdToken in the request via Authorization header or
+/// session. Responds with status code 200 on success, and 403 on failure.
+const validateFirebaseIdTokenAndRespond = async (req, res) => {
+    if (validateFirebaseIdToken(req)) {
+        res.status(200).send();
+    }
+    else {
+        res.status(403).send("Unauthorized");
+    }
+    return;
+};
+/// Takes JSON data from the request and stores it as a JSON file in Firebase Storage.
+/// Rejects requests that do not have valid admin priviledges.
+const writeConfigsToFirebaseStorage = async (req, res) => {
+    console.log("Received config:", req.body);
+    // Validate the request is coming from an admin.
+    if (!validateFirebaseIdToken(req)) {
         res.status(403).send("Unauthorized");
         return;
     }
+    // Upload a JSON file to Firebase Storage that contains information about how
+    // this extension should work.
+    let file = admin.storage().bucket().file(getConfigFilePath());
+    file.save(JSON.stringify(req.body), function (err) {
+        if (!err) {
+            // File written successfully.
+            res.status(200).send("Successfully wrote configurations");
+        }
+        else {
+            res.status(503).send("Upload failed. Please try again later.");
+        }
+    });
+    return;
 };
-app.use(cors);
-app.use(cookieParser);
+/// Reads the current configuration JSON from Firebase Storage and returns it.
+/// Rejects requests that do not have valid admin priviledges.
+const readConfigsFromFirebaseStorage = async (req, res) => {
+    console.log("Received config:", req.body);
+    // Validate the request is coming from an admin.
+    if (!validateFirebaseIdToken(req)) {
+        res.status(403).send("Unauthorized");
+        return;
+    }
+    // Read from Firebase Storage
+    try {
+        let file = admin.storage().bucket().file(getConfigFilePath());
+        file.download().then(function (data) {
+            const contents = data[0];
+            console.log("Read configs from storage:", contents);
+            res.status(200).send(contents);
+        });
+    }
+    catch (e) {
+        // If no file has ever been written from the Admin UI, the file would be
+        // missing.
+        res.status(404).send();
+    }
+    return;
+};
+/// Returns the home-client web app.
 app.get("/home", (request, response) => {
     response.sendFile(path.join(__dirname, "..", "home-client", "build", "index.html"));
 });
+/// Returns the admin-client web app.
 app.get("/admin", (request, response) => {
     // We need to look up information about the Firebase Project that is using
     // this extension, and include it in the admin app.
@@ -89,7 +152,9 @@ app.get("/admin", (request, response) => {
     page = page.replace('project-id="PROJECT-ID"', `project-id="${projectId}"`);
     response.send(page);
 });
-app.get("/admin/work", validateFirebaseIdToken);
+app.get("/admin/work", validateFirebaseIdTokenAndRespond);
+app.get("/admin/read-config", readConfigsFromFirebaseStorage);
+app.post("/admin/write-config", writeConfigsToFirebaseStorage);
 app.get("/", (request, response) => {
     response.status(200).send();
 });
