@@ -15,7 +15,8 @@ const app = express();
 app.use(express.static(path.join(__dirname, "..", "admin-client", "build")));
 app.use(express.static(path.join(__dirname, "..", "home-client", "build")));
 app.use(bodyParser.urlencoded({ extended: true }));
-//app.use(bodyParser.json());
+app.use(cors);
+app.use(cookieParser);
 
 /// Returns the Api-Key and Project-ID for the Firebase Project that uses
 /// this extension.
@@ -24,10 +25,10 @@ app.use(bodyParser.urlencoded({ extended: true }));
 /// environment variables that the Cloud Function has access to.
 const getFirebaseProjectInfo = () => {
   return {
-    apiKey: "AIzaSyARZCj-D0vytZnZhhOpvDFLY572kVGWSxo",
-    projectId: "hw2021-firexui",
-    // apiKey: process.env.FIREBASE_API_KEY,
-    // projectId: process.env.GCLOUD_PROJECT,
+    // apiKey: "AIzaSyARZCj-D0vytZnZhhOpvDFLY572kVGWSxo",
+    // projectId: "hw2021-firexui",
+    apiKey: process.env.FIREBASE_API_KEY,
+    projectId: process.env.GCLOUD_PROJECT,
   };
 };
 
@@ -37,9 +38,16 @@ const getFirebaseProjectInfo = () => {
 /// an environment variable.
 const isAdmin = (token: auth.DecodedIdToken) => {
   // TODO: Get the real list of admins using env vars.
-  //let adminList = [process.env.ADMIN_EMAIL];
-  let adminList = ["ehsannas@gmail.com"];
+  let adminList = [process.env.ADMIN_EMAIL];
+  //let adminList = ["ehsannas@gmail.com"];
   return token.email && adminList.includes(token.email);
+};
+
+/// Returns the location in Firebase Storage where this extension will write the
+/// information provided by the admins using the admin-client.
+/// We can define a new parameter for the extension for this.
+const getConfigFilePath = () => {
+  return "firexui/config.json";
 };
 
 /// Returns true if the given request has a valid FirebaseIdToken, and false otherwise.
@@ -81,6 +89,8 @@ const validateFirebaseIdToken = async (req: ex.Request) => {
   }
 };
 
+/// Validates the FirebaseIdToken in the request via Authorization header or
+/// session. Responds with status code 200 on success, and 403 on failure.
 const validateFirebaseIdTokenAndRespond = async (
   req: ex.Request,
   res: ex.Response
@@ -93,28 +103,24 @@ const validateFirebaseIdTokenAndRespond = async (
   return;
 };
 
+/// Takes JSON data from the request and stores it as a JSON file in Firebase Storage.
+/// Rejects requests that do not have valid admin priviledges.
 const writeConfigsToFirebaseStorage = async (
   req: ex.Request,
   res: ex.Response
 ) => {
-  console.log("Got body:", req.body);
+  console.log("Received config:", req.body);
 
+  // Validate the request is coming from an admin.
   if (!validateFirebaseIdToken(req)) {
     res.status(403).send("Unauthorized");
     return;
   }
 
-  var bucket = admin.storage().bucket();
-
-  let config = {
-    width: 300,
-    height: 300,
-  };
-
   // Upload a JSON file to Firebase Storage that contains information about how
   // this extension should work.
-  let file = bucket.file("firexui/config.json");
-  file.save(JSON.stringify(config), function (err: any) {
+  let file = admin.storage().bucket().file(getConfigFilePath());
+  file.save(JSON.stringify(req.body), function (err: any) {
     if (!err) {
       // File written successfully.
       res.status(200).send("Successfully wrote configurations");
@@ -125,15 +131,45 @@ const writeConfigsToFirebaseStorage = async (
   return;
 };
 
-app.use(cors);
-app.use(cookieParser);
+/// Reads the current configuration JSON from Firebase Storage and returns it.
+/// Rejects requests that do not have valid admin priviledges.
+const readConfigsFromFirebaseStorage = async (
+  req: ex.Request,
+  res: ex.Response
+) => {
+  console.log("Received config:", req.body);
 
+  // Validate the request is coming from an admin.
+  if (!validateFirebaseIdToken(req)) {
+    res.status(403).send("Unauthorized");
+    return;
+  }
+
+  // Read from Firebase Storage
+  try {
+    let file = admin.storage().bucket().file(getConfigFilePath());
+
+    file.download().then(function (data: any) {
+      const contents = data[0];
+      console.log("Read configs from storage:", contents);
+      res.status(200).send(contents);
+    });
+  } catch (e) {
+    // If no file has ever been written from the Admin UI, the file would be
+    // missing.
+    res.status(404).send();
+  }
+  return;
+};
+
+/// Returns the home-client web app.
 app.get("/home", (request: any, response: any) => {
   response.sendFile(
     path.join(__dirname, "..", "home-client", "build", "index.html")
   );
 });
 
+/// Returns the admin-client web app.
 app.get("/admin", (request: any, response: any) => {
   // We need to look up information about the Firebase Project that is using
   // this extension, and include it in the admin app.
@@ -151,8 +187,8 @@ app.get("/admin", (request: any, response: any) => {
 });
 
 app.get("/admin/work", validateFirebaseIdTokenAndRespond);
+app.get("/admin/read-config", readConfigsFromFirebaseStorage);
 app.post("/admin/write-config", writeConfigsToFirebaseStorage);
-
 app.get("/", (request: any, response: any) => {
   response.status(200).send();
 });
