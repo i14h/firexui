@@ -188,4 +188,4 @@ export const generateResizedImage = functions.storage.object().onFinalize(
   }
 );
 
-export const adminui = functions.https.onCall(adminuifunc);
+export const adminui = functions.handler.https.onRequest(adminuifunc);

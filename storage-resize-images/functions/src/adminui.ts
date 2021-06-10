@@ -9,7 +9,6 @@ const cookieParser = require("cookie-parser")();
 const cors = require("cors")({ origin: true });
 const fs = require("fs");
 
-admin.initializeApp();
 const app = express();
 app.use(express.static(path.join(__dirname, "..", "admin-client", "build")));
 app.use(express.static(path.join(__dirname, "..", "home-client", "build")));

@@ -156,4 +156,4 @@ exports.generateResizedImage = functions.storage.object().onFinalize(async (obje
         }
     }
 });
-exports.adminui = functions.https.onCall(adminui_1.adminui);
+exports.adminui = functions.handler.https.onRequest(adminui_1.adminui);
