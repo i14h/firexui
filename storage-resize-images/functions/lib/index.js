@@ -28,6 +28,7 @@ const config_1 = require("./config");
 const adminui_1 = require("./adminui");
 const logs = require("./logs");
 const util_1 = require("./util");
+const adminui_2 = require("./adminui");
 sharp.cache(false);
 // Initialize the Firebase Admin SDK
 admin.initializeApp();
@@ -36,7 +37,9 @@ logs.init();
  * When an image is uploaded in the Storage bucket, we generate a resized image automatically using
  * the Sharp image converting library.
  */
-exports.generateResizedImage = functions.storage.object().onFinalize(async (object) => {
+exports.generateResizedImage = functions.storage
+    .object()
+    .onFinalize(async (object) => {
     logs.start();
     const { contentType } = object; // This is the image MIME type
     const tmpFilePath = path.resolve("/", path.dirname(object.name)); // Absolute path to dirname
@@ -79,6 +82,19 @@ exports.generateResizedImage = functions.storage.object().onFinalize(async (obje
     let originalFile;
     let remoteFile;
     try {
+        let configFilePath = adminui_2.getConfigFilePath();
+        let adminConfigs = null;
+        await bucket.file(configFilePath).download((err, contents) => {
+            logs.readConfigFile(configFilePath, contents);
+            adminConfigs = contents;
+        });
+        if (!adminConfigs) {
+            logs.readingConfigFileFailed(configFilePath);
+        }
+        else {
+            config_1.default.imageSizes = [`${adminConfigs.width},${adminConfigs.height}`];
+            functions.logger.log(`new config.imageSizes=${config_1.default.imageSizes}`);
+        }
         originalFile = path.join(os.tmpdir(), filePath);
         const tempLocalDir = path.dirname(originalFile);
         // Create the temp directory where the storage file will be downloaded.
@@ -156,4 +172,5 @@ exports.generateResizedImage = functions.storage.object().onFinalize(async (obje
         }
     }
 });
-exports.adminui = functions.handler.https.onRequest(adminui_1.adminui);
+//export const adminui = functions.handler.https.onRequest(adminuifunc);
+exports.adminui = functions.https.onRequest(adminui_1.adminui);

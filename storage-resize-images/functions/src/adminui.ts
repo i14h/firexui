@@ -24,8 +24,9 @@ app.use(cookieParser);
 /// environment variables that the Cloud Function has access to.
 const getFirebaseProjectInfo = () => {
   return {
-    apiKey: process.env.FIREBASE_API_KEY,
-    projectId: process.env.GCLOUD_PROJECT,
+    apiKey:
+      process.env.FIREBASE_API_KEY || "AIzaSyARZCj-D0vytZnZhhOpvDFLY572kVGWSxo",
+    projectId: process.env.GCLOUD_PROJECT || "hw2021-firexui",
   };
 };
 
@@ -35,14 +36,25 @@ const getFirebaseProjectInfo = () => {
 /// an environment variable.
 const isAdmin = (token: auth.DecodedIdToken) => {
   // TODO: Get the real list of admins using env vars.
-  let adminList = [process.env.ADMIN_EMAIL];
+  let adminList = [
+    process.env.ADMIN_EMAIL,
+    "rafikhan@gmail.com",
+    "ehsannas@gmail.com",
+    "imanrahmati@google.com",
+  ];
+  functions.logger.log(`current adminList:${adminList}`);
+  functions.logger.log(`token.email:${token.email}`);
+  functions.logger.log(
+    `result:${token.email && adminList.includes(token.email)}`
+  );
+
   return token.email && adminList.includes(token.email);
 };
 
 /// Returns the location in Firebase Storage where this extension will write the
 /// information provided by the admins using the admin-client.
 /// We can define a new parameter for the extension for this.
-const getConfigFilePath = () => {
+export const getConfigFilePath = () => {
   return "firexui/config.json";
 };
 
@@ -91,9 +103,11 @@ const validateFirebaseIdTokenAndRespond = async (
   req: ex.Request,
   res: ex.Response
 ) => {
-  if (validateFirebaseIdToken(req)) {
+  if (await validateFirebaseIdToken(req)) {
+    functions.logger.log("validateFirebaseIdToken returned true");
     res.status(200).send();
   } else {
+    functions.logger.log("validateFirebaseIdToken returned false");
     res.status(403).send("Unauthorized");
   }
   return;
@@ -108,7 +122,7 @@ const writeConfigsToFirebaseStorage = async (
   console.log("Received config:", req.body);
 
   // Validate the request is coming from an admin.
-  if (!validateFirebaseIdToken(req)) {
+  if (!(await validateFirebaseIdToken(req))) {
     res.status(403).send("Unauthorized");
     return;
   }
@@ -136,7 +150,7 @@ const readConfigsFromFirebaseStorage = async (
   console.log("Received config:", req.body);
 
   // Validate the request is coming from an admin.
-  if (!validateFirebaseIdToken(req)) {
+  if (!(await validateFirebaseIdToken(req))) {
     res.status(403).send("Unauthorized");
     return;
   }

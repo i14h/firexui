@@ -43,7 +43,7 @@ function ConfigForm(props) {
   };
 
   return (
-    <div className="card mt-2" style={{ width: "30rem" }}>
+    <div className="card mt-2">
       <form className="card-body" autoComplete="off" onSubmit={onFormSubmit}>
         <div className="form-row">
           <div className="form-group col-md-6 text-left">
@@ -79,7 +79,150 @@ function ConfigForm(props) {
             />
           </div>
         </div>
+        <div className="form-row my-2">
+          <label className="text-secondary col-form-label-sm">
+            Delete Original Files ?
+          </label>
+          <select class="form-control" id="action-on-resize">
+            <option>Delete on successful resize</option>
+            <option>Yes</option>
+            <option>No</option>
+          </select>
+        </div>
 
+        <div className="form-row my-2">
+          <label className="text-secondary col-form-label-sm">
+            Cloud Storage Path Of Original Files
+          </label>
+          <input
+            type="text"
+            id="disabledTextInput"
+            className="form-control w-full"
+            placeholder="e.g. /images"
+          />
+        </div>
+
+        <div className="form-row my-2">
+          <label className="text-secondary col-form-label-sm">
+            Cloud Storage Paths To Exclude
+          </label>
+          <input
+            type="text"
+            id="disabledTextInput"
+            className="form-control"
+            placeholder="e.g. /images/high-res"
+          />
+        </div>
+
+        <div className="form-row my-2">
+          <label className="text-secondary col-form-label-sm">
+            Cloud Storage Path For Resized Images
+          </label>
+          <input
+            type="text"
+            id="disabledTextInput"
+            className="form-control"
+            placeholder="e.g. thumbnails"
+          />
+        </div>
+
+        <div className="form-row my-2">
+          <label className="text-secondary col-form-label-sm">
+            Cache-Control Header
+          </label>
+          <input
+            type="text"
+            id="disabledTextInput"
+            className="form-control"
+            placeholder="e.g. max-age=86400"
+          />
+        </div>
+        <div className="form-row my-2">
+          <label className="text-secondary col-form-label-sm">
+            Resized Image File Name Pattern:
+          </label>
+          <input
+            type="text"
+            id="disabledTextInput"
+            className="form-control"
+            placeholder="e.g. &#36;&#123;original_name&#125;_&#36;&#123;width&#125;x&#36;&#123;heigth&#125;"
+          />
+        </div>
+        <div className="form-row my-2">
+          <label className="text-secondary col-form-label-sm pt-3 mr-2">
+            Result Formats:
+          </label>
+          <div class="form-check form-check-inline">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              id="inlineCheckbox1"
+              value="option1"
+            />
+            <label
+              class="text-secondary col-form-label-sm form-check-label"
+              for="inlineCheckbox1"
+            >
+              original
+            </label>
+          </div>
+          <div class="form-check form-check-inline">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              id="inlineCheckbox2"
+              value="option2"
+            />
+            <label
+              class="text-secondary col-form-label-sm form-check-label"
+              for="inlineCheckbox2"
+            >
+              jepg
+            </label>
+          </div>
+          <div class="form-check form-check-inline">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              id="inlineCheckbox3"
+              value="option3"
+            />
+            <label
+              class="text-secondary col-form-label-sm form-check-label"
+              for="inlineCheckbox3"
+            >
+              png
+            </label>
+          </div>
+          <div class="form-check form-check-inline">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              id="inlineCheckbox3"
+              value="option3"
+            />
+            <label
+              class="text-secondary col-form-label-sm form-check-label"
+              for="inlineCheckbox3"
+            >
+              tiff
+            </label>
+          </div>
+          <div class="form-check form-check-inline">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              id="inlineCheckbox3"
+              value="option3"
+            />
+            <label
+              class="text-secondary col-form-label-sm form-check-label"
+              for="inlineCheckbox3"
+            >
+              webp
+            </label>
+          </div>
+        </div>
         {submitInProgress ? (
           <button class="btn btn-primary" type="button" disabled>
             <span
@@ -91,7 +234,7 @@ function ConfigForm(props) {
           </button>
         ) : (
           <button type="submit" className="btn btn-primary">
-            Submit
+            Update
           </button>
         )}
       </form>

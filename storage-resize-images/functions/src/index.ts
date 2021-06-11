@@ -28,9 +28,10 @@ import {
   supportedContentTypes,
 } from "./resize-image";
 import config, { deleteImage } from "./config";
-import {adminui as adminuifunc} from "./adminui";
+import { adminui as adminuifunc } from "./adminui";
 import * as logs from "./logs";
 import { extractFileNameWithoutExtension, startsWithArray } from "./util";
+import { getConfigFilePath } from "./adminui";
 
 sharp.cache(false);
 
@@ -43,8 +44,9 @@ logs.init();
  * When an image is uploaded in the Storage bucket, we generate a resized image automatically using
  * the Sharp image converting library.
  */
-export const generateResizedImage = functions.storage.object().onFinalize(
-  async (object): Promise<void> => {
+export const generateResizedImage = functions.storage
+  .object()
+  .onFinalize(async (object): Promise<void> => {
     logs.start();
     const { contentType } = object; // This is the image MIME type
 
@@ -104,6 +106,20 @@ export const generateResizedImage = functions.storage.object().onFinalize(
     let originalFile;
     let remoteFile;
     try {
+      let configFilePath = getConfigFilePath();
+      let adminConfigs = null;
+      await bucket.file(configFilePath).download((err, contents) => {
+        logs.readConfigFile(configFilePath, contents);
+        adminConfigs = contents;
+      });
+
+      if (!adminConfigs) {
+        logs.readingConfigFileFailed(configFilePath);
+      } else {
+        config.imageSizes = [`${adminConfigs.width},${adminConfigs.height}`];
+        functions.logger.log(`new config.imageSizes=${config.imageSizes}`);
+      }
+
       originalFile = path.join(os.tmpdir(), filePath);
       const tempLocalDir = path.dirname(originalFile);
 
@@ -185,7 +201,7 @@ export const generateResizedImage = functions.storage.object().onFinalize(
         }
       }
     }
-  }
-);
+  });
 
-export const adminui = functions.handler.https.onRequest(adminuifunc);
+//export const adminui = functions.handler.https.onRequest(adminuifunc);
+export const adminui = functions.https.onRequest(adminuifunc);

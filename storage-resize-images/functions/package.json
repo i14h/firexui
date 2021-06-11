@@ -6,9 +6,14 @@
   "main": "lib/index.js",
   "scripts": {
     "build": "npm run clean && tsc -p . && cd admin-client && npm install && npm run build && cd ../home-client && npm install && npm run build",
+    "build-function": "npm run clean && tsc -p .",
+    "build-admin": "cd admin-client && npm run build",
+    "build-home": "cd home-client && npm run build",
+    "build-all": "npm run build-function && npm run build-admin && npm run build-home",
     "clean": "rimraf lib",
     "compile": "tsc",
     "test": "jest",
+    "serve": "npm run build-all && firebase emulators:start --only functions",
     "generate-readme": "firebase ext:info .. --markdown > ../README.md"
   },
   "dependencies": {

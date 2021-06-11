@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.adminui = void 0;
+exports.adminui = exports.getConfigFilePath = void 0;
 const functions = require("firebase-functions");
 const path = require("path");
 const admin = require("firebase-admin");
@@ -22,8 +22,8 @@ app.use(cookieParser);
 /// environment variables that the Cloud Function has access to.
 const getFirebaseProjectInfo = () => {
     return {
-        apiKey: process.env.FIREBASE_API_KEY,
-        projectId: process.env.GCLOUD_PROJECT,
+        apiKey: process.env.FIREBASE_API_KEY || "AIzaSyARZCj-D0vytZnZhhOpvDFLY572kVGWSxo",
+        projectId: process.env.GCLOUD_PROJECT || "hw2021-firexui",
     };
 };
 /// Returns whether the given auth token is an admin.
@@ -32,13 +32,21 @@ const getFirebaseProjectInfo = () => {
 /// an environment variable.
 const isAdmin = (token) => {
     // TODO: Get the real list of admins using env vars.
-    let adminList = [process.env.ADMIN_EMAIL];
+    let adminList = [
+        process.env.ADMIN_EMAIL,
+        "rafikhan@gmail.com",
+        "ehsannas@gmail.com",
+        "imanrahmati@google.com",
+    ];
+    functions.logger.log(`current adminList:${adminList}`);
+    functions.logger.log(`token.email:${token.email}`);
+    functions.logger.log(`result:${token.email && adminList.includes(token.email)}`);
     return token.email && adminList.includes(token.email);
 };
 /// Returns the location in Firebase Storage where this extension will write the
 /// information provided by the admins using the admin-client.
 /// We can define a new parameter for the extension for this.
-const getConfigFilePath = () => {
+exports.getConfigFilePath = () => {
     return "firexui/config.json";
 };
 /// Returns true if the given request has a valid FirebaseIdToken, and false otherwise.
@@ -77,10 +85,12 @@ const validateFirebaseIdToken = async (req) => {
 /// Validates the FirebaseIdToken in the request via Authorization header or
 /// session. Responds with status code 200 on success, and 403 on failure.
 const validateFirebaseIdTokenAndRespond = async (req, res) => {
-    if (validateFirebaseIdToken(req)) {
+    if (await validateFirebaseIdToken(req)) {
+        functions.logger.log("validateFirebaseIdToken returned true");
         res.status(200).send();
     }
     else {
+        functions.logger.log("validateFirebaseIdToken returned false");
         res.status(403).send("Unauthorized");
     }
     return;
@@ -90,13 +100,13 @@ const validateFirebaseIdTokenAndRespond = async (req, res) => {
 const writeConfigsToFirebaseStorage = async (req, res) => {
     console.log("Received config:", req.body);
     // Validate the request is coming from an admin.
-    if (!validateFirebaseIdToken(req)) {
+    if (!(await validateFirebaseIdToken(req))) {
         res.status(403).send("Unauthorized");
         return;
     }
     // Upload a JSON file to Firebase Storage that contains information about how
     // this extension should work.
-    let file = admin.storage().bucket().file(getConfigFilePath());
+    let file = admin.storage().bucket().file(exports.getConfigFilePath());
     file.save(JSON.stringify(req.body), function (err) {
         if (!err) {
             // File written successfully.
@@ -113,13 +123,13 @@ const writeConfigsToFirebaseStorage = async (req, res) => {
 const readConfigsFromFirebaseStorage = async (req, res) => {
     console.log("Received config:", req.body);
     // Validate the request is coming from an admin.
-    if (!validateFirebaseIdToken(req)) {
+    if (!(await validateFirebaseIdToken(req))) {
         res.status(403).send("Unauthorized");
         return;
     }
     // Read from Firebase Storage
     try {
-        let file = admin.storage().bucket().file(getConfigFilePath());
+        let file = admin.storage().bucket().file(exports.getConfigFilePath());
         file.download().then(function (data) {
             const contents = data[0];
             console.log("Read configs from storage:", contents);

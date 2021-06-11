@@ -160,3 +160,13 @@ export const remoteFileDeleted = (path: string) => {
 export const remoteFileDeleting = (path: string) => {
   logger.log(`Deleting original file from storage bucket: '${path}'`);
 };
+
+export const readConfigFile = (path: string, config: any) => {
+  logger.log(
+    `Read config file located at: '${path}':${JSON.stringify(config)}`
+  );
+};
+
+export const readingConfigFileFailed = (path: string) => {
+  logger.log(`Unable to read config file at: '${path}'`);
+};

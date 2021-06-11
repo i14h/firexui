@@ -75,7 +75,7 @@ function App() {
         <header className="App-header">
           <img src={logo} className="App-logo" alt="logo" />
           <p>You are not authorized to access this content.</p>
-          <div className="">
+          <div className="mt-3">
             <SignIn />
           </div>
         </header>
@@ -88,8 +88,9 @@ function App() {
     <div className="App">
       <header className="App-header">
         <img src={logo} className="App-logo" alt="logo" />
-        <p>Welcome to the Admin Portal!</p>
-        <div className="">
+        <p>Welcome to the Image Resizer Extension Dashboard!</p>
+        <p>Please sign in to continue</p>
+        <div className="mt-3">
           <SignIn />
         </div>
       </header>

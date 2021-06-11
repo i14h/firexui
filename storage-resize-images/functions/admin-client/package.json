@@ -8,8 +8,11 @@
     "@testing-library/react": "^11.2.7",
     "@testing-library/user-event": "^12.8.3",
     "axios": "^0.21.1",
+    "chart.js": "^3.3.2",
+    "craco": "^0.0.3",
     "firebase": "^8.6.1",
     "react": "^17.0.2",
+    "react-chartjs-2": "^3.0.3",
     "react-dom": "^17.0.2",
     "react-firebase-hooks": "^3.0.4",
     "react-google-button": "^0.7.2",
@@ -39,5 +42,10 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.2.6",
+    "postcss": "^8.3.2",
+    "tailwindcss": "^2.1.4"
   }
 }
