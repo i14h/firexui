@@ -14,7 +14,7 @@ name: storage-resize-images-admin-ui
 version: 0.1.0
 specVersion: v1beta
 
-displayName: Resize Images
+displayName: Resize Images ++
 description:
   Resizes images uploaded to Cloud Storage to a specified size, and optionally keeps or deletes the original image. Also configurable via admin ui
 
@@ -146,114 +146,4 @@ params:
     validationRegex: ^([0-9a-z_.-]*)$
     validationErrorMessage: Invalid storage bucket
     default: ${STORAGE_BUCKET}
-    required: true
-
-  - param: IMG_SIZES
-    label: Sizes of resized images
-    description: >
-      What sizes of images would you like (in pixels)? Enter the sizes as a
-      comma-separated list of WIDTHxHEIGHT values. Learn more about
-      [how this parameter works](https://firebase.google.com/products/extensions/storage-resize-images).
-    type: string
-    example: "200x200"
-    validationRegex: ^\d+x(\d+,\d+x)*\d+$
-    validationErrorMessage:
-      Invalid sizes, must be a comma-separated list of WIDTHxHEIGHT values.
-    default: "200x200"
-    required: true
-
-  - param: DELETE_ORIGINAL_FILE
-    label: Deletion of original file
-    description: >-
-      Do you want to automatically delete the original file from the Cloud Storage
-      bucket? Note that these deletions cannot be undone.
-    type: select
-    options:
-      - label: Yes
-        value: true
-      - label: No
-        value: false
-      - label: Delete on successful resize
-        value: on_success
-    default: false
-    required: true
-
-  - param: RESIZED_IMAGES_PATH
-    label: Cloud Storage path for resized images
-    description: >
-      A relative path in which to store resized images. For example,
-      if you specify a path here of `thumbs` and you upload an image to
-      `/images/original.jpg`, then the resized image is stored at
-      `/images/thumbs/original_200x200.jpg`. If you prefer to store resized
-      images at the root of your bucket, leave this field empty.
-    example: thumbnails
-    required: false
-
-  - param: INCLUDE_PATH_LIST
-    label: Paths that contain images you want to resize
-    description: >
-      Restrict storage-resize-images to only resize images in specific locations in your Storage bucket by
-      supplying a comma-separated list of absolute paths. For example, to only resize the images
-      stored in the `/users/pictures` and `/restaurants/menuItems` directories, specify the paths `/users/pictures,/restaurants/menuItems`.
-
-      You may also use wildcard notation for directories in the path. For example, `/users/*/pictures`
-      would match `/users/profile/pictures/image.png` as well as  `/users/profile/pictures/any/sub/directory/image.png`.
-
-      If you prefer to resize every image uploaded to your Storage bucket,
-      leave this field empty.
-    type: string
-    example: "/users/avatars,/design/pictures"
-    validationRegex: ^(\/[^\s\/\,]+)+(\,(\/[^\s\/\,]+)+)*$
-    validationErrorMessage:
-      Invalid paths, must be a comma-separated list of absolute path values.
-    required: false
-
-  - param: EXCLUDE_PATH_LIST
-    label: List of absolute paths not included for resized images
-    description: >
-      Ensure storage-resize-images does *not* resize images in _specific locations_ in your Storage bucket by
-      supplying a comma-separated list of absolute paths. For example, to *exclude* the images
-      stored in the `/users/pictures` and `/restaurants/menuItems` directories, specify the paths `/users/pictures,/restaurants/menuItems`.
-
-      You may also use wildcard notation for directories in the path. For example, `/users/*/pictures`
-      would exclude `/users/profile/pictures/image.png` as well as `/users/profile/pictures/any/sub/directory/image.png`.
-
-      If you prefer to resize every image uploaded to your Storage bucket,
-      leave this field empty.
-    type: string
-    example: "/users/avatars/thumbs,/design/pictures/thumbs"
-    validationRegex: ^(\/[^\s\/\,]+)+(\,(\/[^\s\/\,]+)+)*$
-    validationErrorMessage:
-      Invalid paths, must be a comma-separated list of absolute path values.
-    required: false
-
-  - param: CACHE_CONTROL_HEADER
-    label: Cache-Control header for resized images
-    description: >
-      This extension automatically copies any `Cache-Control` metadata from the original image
-      to the resized images. For the resized images, do you want to overwrite this copied
-      `Cache-Control` metadata or add `Cache-Control` metadata? Learn more about
-      [`Cache-Control` headers](https://developer.mozilla.org/docs/Web/HTTP/Headers/Cache-Control).
-      If you prefer not to overwrite or add `Cache-Control` metadata, leave this field empty.
-    example: max-age=86400
-    required: false
-
-  - param: IMAGE_TYPE
-    label: Convert image to preferred types
-    description: >
-      The image types you'd like your source image to convert to. The default for this option will
-      be to keep the original file type.
-    type: multiSelect
-    options:
-      - label: jpeg
-        value: jpeg
-      - label: webp
-        value: webp
-      - label: png
-        value: png
-      - label: tiff
-        value: tiff
-      - label: original
-        value: false
-    default: false
     required: true
