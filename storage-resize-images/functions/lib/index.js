@@ -92,7 +92,13 @@ exports.generateResizedImage = functions.storage
             logs.readingConfigFileFailed(configFilePath);
         }
         else {
-            config_1.default.imageSizes = [`${adminConfigs.width},${adminConfigs.height}`];
+            config_1.default.imageSizes = adminConfigs.width && adminConfigs.height ? [`${adminConfigs.width},${adminConfigs.height}`] : config_1.default.imageSizes;
+            config_1.default.cacheControlHeader = adminConfigs.cacheControlHeader ? `${adminConfigs.cacheControlHeader}` : config_1.default.cacheControlHeader;
+            config_1.default.deleteOriginalFile = adminConfigs.deleteOriginalFile ? adminConfigs.deleteOriginalFile : config_1.default.deleteOriginalFile;
+            config_1.default.resizedImagesPath = adminConfigs.resizedImagesPath ? adminConfigs.resizedImagesPath : config_1.default.resizedImagesPath;
+            config_1.default.includePathList = adminConfigs.includePathList ? adminConfigs.includePathList : config_1.default.includePathList;
+            config_1.default.excludePathList = adminConfigs.excludePathList ? adminConfigs.excludePathList : config_1.default.excludePathList;
+            config_1.default.imageTypes = adminConfigs.imageTypes ? adminConfigs.imageTypes : config_1.default.imageTypes;
             functions.logger.log(`new config.imageSizes=${config_1.default.imageSizes}`);
         }
         originalFile = path.join(os.tmpdir(), filePath);
@@ -172,5 +178,5 @@ exports.generateResizedImage = functions.storage
         }
     }
 });
-//export const adminui = functions.handler.https.onRequest(adminuifunc);
-exports.adminui = functions.https.onRequest(adminui_1.adminui);
+exports.adminui = functions.handler.https.onRequest(adminui_1.adminui);
+// export const adminui = functions.https.onRequest(adminuifunc);
